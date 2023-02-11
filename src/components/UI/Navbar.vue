@@ -31,11 +31,12 @@
                 placeholder="Пошук"
                 aria-label="Search"
                 @focus="$router.push('/trips')"
-                @input="updateSearchQuery"
+                :value="searchQuery"
+                @input="$emit('update:searchQuery', $event.target.value)"
             >
             <button
                 class="btn btn-outline-primary"
-
+                @click.prevent="$emit('search')"
                 type="submit">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                    class="bi bi-search mb-1" viewBox="0 0 16 16">
@@ -57,11 +58,6 @@ export default {
       type: String,
     }
   },
-  methods: {
-    updateSearchQuery(event) {
-      this.$emit('update:searchQuery', event.target.value)
-    }
-  }
 }
 </script>
 

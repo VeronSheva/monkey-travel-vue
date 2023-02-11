@@ -14,18 +14,18 @@
     </div>
     <div class="row">
       <div class="col-1"></div>
-      <div class="col-11">
-        <div class="row mt-4 mb-2">
+      <div class="col-10">
+        <div class="row mt-4">
           <h3>Ваше бронювання:</h3>
         </div>
         <div class="row">
           <div class="col-md-5">
             <trip-by-id
-                :trip="getTripById"
+                :trip="trip"
             ></trip-by-id>
           </div>
           <div class="col-md-7">
-            <purchase-form
+            <purchase-form class="mt-3"
                 :phoneCodes="phoneCodes"
                 v-model:name="purchaseData.name"
                 v-model:email="purchaseData.email"
@@ -33,7 +33,8 @@
                 v-model:phone_number="purchaseData.phone_number"
                 v-model:country_code="purchaseData.country_code"
                 v-model:sum="purchaseData.sum"
-                v-model:tripPrice="getTripById"
+                v-model:tripPrice="trip.price"
+                @savePurchase="savePurchase"
             >
             </purchase-form>
           </div>
@@ -46,7 +47,8 @@
 
 <script>
 import PurchaseForm from "@/components/PurchaseForm"
-import TripById from "@/views/TripById";
+import TripById from "@/components/TripById";
+import HttpService from "@/service/HTTP/HttpService";
 
 export default {
   components: {
@@ -55,54 +57,17 @@ export default {
   data() {
     return {
       chosenTripId: null,
-      trips: [
-        {
-          id: 0,
-          name: "Італія-20",
-          description: "ілоамтщуйкь",
-          price: 400,
-          duration: 20,
-          date_start: "25-10-2022",
-          date_end: "25-10-2022",
-          country: "Італія",
-          img: "https://cdn.cnn.com/cnnnext/dam/assets/200512103822-maldives-bungalow-aerial.jpg",
-          free_places: 30
-        },
-        {
-          id: 1,
-          name: "Італія-10",
-          description: "ілоамтщуйкь",
-          price: 200,
-          duration: 10,
-          date_start: "10-10-2022",
-          date_end: "10-10-2022",
-          country: "Італія",
-          img: "https://cdn.cnn.com/cnnnext/dam/assets/200512103822-maldives-bungalow-aerial.jpg",
-          free_places: 30
-        },
-        {
-          id: 2,
-          name: "Італія-5",
-          description: "ілоамтщуйкь",
-          price: 100,
-          duration: 5,
-          date_start: "20-10-2022",
-          date_end: "20-10-2022",
-          country: "Італія",
-          img: "https://cdn.cnn.com/cnnnext/dam/assets/200512103822-maldives-bungalow-aerial.jpg",
-          free_places: 30
-        },
-      ],
+      trip: {},
       phoneCodes: [
-        {code: '+380' , abr: 'UA'},
-        {code: '+48' , abr: 'PL'},
-        {code: '+1' , abr: 'US'},
-        {code: '+9' , abr: 'TR'},
-        {code: '+373' , abr: 'MD'},
-        {code: '+351' , abr: 'PT'},
-        {code: '+39' , abr: 'IT'},
-        {code: '+44' , abr: 'UK'},
-        {code: '+33' , abr: 'FR'},
+        {code: '+380', abr: 'UA'},
+        {code: '+48', abr: 'PL'},
+        {code: '+1', abr: 'US'},
+        {code: '+9', abr: 'TR'},
+        {code: '+373', abr: 'MD'},
+        {code: '+351', abr: 'PT'},
+        {code: '+39', abr: 'IT'},
+        {code: '+44', abr: 'UK'},
+        {code: '+33', abr: 'FR'},
       ],
       purchaseData: {
         name: '',
@@ -115,19 +80,27 @@ export default {
       },
     }
   },
-  computed: {
-     getTripById() {
-      // const response = axios.get("/api/v1/get-trip/" + this.chosenTripId)
-      // return response.data
-       if (this.chosenTripId === null) {
-         this.chosenTripId = window.localStorage.getItem('chosenTrip')
-         this.purchaseData.trip = this.chosenTripId
-         window.localStorage.setItem('chosenTripId', null)
-       }
-       const trip = this.trips.filter(trip => trip.id == this.chosenTripId)
-       return trip[0]
+  methods: {
+    async getTripById() {
+      this.chosenTripId = window.localStorage.getItem('chosenTrip')
+      this.purchaseData.trip = this.chosenTripId
+      window.localStorage.setItem('chosenTripId', null)
+      const response = await HttpService.get('get-trip/' + this.chosenTripId)
+      this.trip = response.items[0]
     },
+    async getPhoneCodes() {
+      this.phoneCodes = await HttpService.get('get-country-codes')
+    },
+    async savePurchase() {
+
+      const response = await HttpService.post('save-purchase', this.purchaseData)
+      console.log(response)
+    }
   },
+  mounted() {
+    this.getTripById()
+    this.getPhoneCodes()
+  }
 }
 </script>
 

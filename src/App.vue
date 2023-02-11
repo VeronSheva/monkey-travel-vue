@@ -1,7 +1,10 @@
 <template>
-  <navbar v-model:searchQuery="searchQuery"></navbar>
+  <navbar v-model:searchQuery="searchQuery" @search="search"></navbar>
   <div class="app">
-    <router-view></router-view>
+    <router-view
+        :searchQuery="searchQuery"
+        v-model:searchTrigger="searchTrigger"
+    ></router-view>
   </div>
 </template>
 
@@ -15,6 +18,12 @@ export default {
   data() {
     return {
       searchQuery: '',
+      searchTrigger: false
+    }
+  },
+  methods: {
+    search() {
+      this.searchTrigger = true
     }
   }
 }

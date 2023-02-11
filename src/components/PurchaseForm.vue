@@ -9,7 +9,7 @@
              aria-describedby="basic-addon1">
     </div>
     <div class="row">
-      <div class="col-7">
+      <div class="col-12 col-md-12 col-sm-7 col-lg-7">
         <div class="row">
           <div class="col-5">
             <div class="input-group mb-3">
@@ -64,7 +64,10 @@
       <div class="col-6"></div>
       <div class="col-6" align="right">
         <h5>Сума: ${{ sum }} </h5>
-        <button type="submit" class="btn btn-primary mt-2">Підтвердити</button>
+        <button type="submit"
+                class="btn btn-primary mt-2"
+                @click="$emit('savePurchase')"
+        >Підтвердити</button>
       </div>
     </div>
 
@@ -97,7 +100,7 @@ export default {
       type: Number
     },
     tripPrice: {
-      type: Object
+      type: Number
     }
   },
   methods: {
@@ -118,7 +121,7 @@ export default {
       this.$emit('update:country_code', event.target.value)
     },
     updateSum(people) {
-      this.$emit('update:sum', this.tripPrice.price * people)
+      this.$emit('update:sum', this.tripPrice * people)
     }
   }
 }
