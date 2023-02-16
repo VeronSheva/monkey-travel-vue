@@ -27,6 +27,7 @@
           <div class="col-md-7">
             <purchase-form class="mt-3"
                 :phoneCodes="phoneCodes"
+                :errors="errors"
                 v-model:name="purchaseData.name"
                 v-model:email="purchaseData.email"
                 v-model:people="purchaseData.people"
@@ -56,6 +57,7 @@ export default {
   },
   data() {
     return {
+      errors: false,
       chosenTripId: null,
       trip: {},
       phoneCodes: [
@@ -76,7 +78,6 @@ export default {
         email: '',
         trip: null,
         people: null,
-        sum: 0,
       },
     }
   },
@@ -92,9 +93,7 @@ export default {
       this.phoneCodes = await HttpService.get('get-country-codes')
     },
     async savePurchase() {
-
-      const response = await HttpService.post('save-purchase', this.purchaseData)
-      console.log(response)
+      this.errors = await HttpService.post('save-purchase', this.purchaseData)
     }
   },
   mounted() {

@@ -44,8 +44,8 @@ class HttpService {
 
     const url = this.#config.baseUrl + uri;
 
-    const response = await fetch(url, options);
-    return await this.#parseResponse(response)
+      const response = await fetch(url, options);
+      return await this.#parseResponse(response)
   }
 
   async get(uri, config) {
@@ -74,11 +74,24 @@ class HttpService {
     }
 
     if (response.status === 400) {
-      throw new Error('Bad Request')
+      let error_string = ''
+      let errors = new Map()
+      const data = await response.json();
+      data.details.violations.forEach(
+        error => {
+          errors.set(error.property_path, error.message);
+          error_string += error.message + "<br>"
+        })
+      return errors
+      throw new Error(error_string)
     }
 
     if (response.status === 401) {
       throw new Error('Unauthorized Request')
+    }
+
+    if (response.status === 404) {
+      throw new Error('Not Found')
     }
 
     if (response.status === 500) {

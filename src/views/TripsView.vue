@@ -115,12 +115,12 @@ export default {
     async getTrips() {
       this.loading = true
       const response = await HttpService.post('get-trips/' + this.pagination.perPage + '/' + this.pagination.currentPage, this.filters)
-      this.trips = response.items
-      this.pagination.pagination = response.pagination
-      this.pagination.perPage = response.per_page
-      this.pagination.currentPage = response.current_page
-      this.pagination.total = response.total
-      this.loading = false
+        this.loading = false
+        this.trips = response.items
+        this.pagination.pagination = response.pagination
+        this.pagination.perPage = response.per_page
+        this.pagination.currentPage = response.current_page
+        this.pagination.total = response.total
     },
     async getCountriesFilter() {
       this.countriesFilter = await HttpService.get('get-countries')
