@@ -1,4 +1,6 @@
 import RequestConfig from './RequestConfig'
+import InvalidData from "@/Exception/InvalidData";
+import Unauthorized from "@/Exception/Unauthorized";
 
 export const RESPONSE_TYPE = {
   json: 'json',
@@ -10,32 +12,35 @@ export const RESPONSE_TYPE = {
 class HttpService {
   #methods = null;
   #config = null;
+  #defaultConfig = null;
 
   constructor() {
-    this.#config = new RequestConfig();
+    this.#defaultConfig = new RequestConfig();
     this.#methods = {
       post: 'POST',
       get: 'GET'
-    }
+    };
   }
 
   #setConfig(config) {
     if (null !== config) {
       if (!(config instanceof RequestConfig)) {
         throw new Error('Config must be instance of RequestConfig')
+      } else {
+        this.#config = config
       }
-      this.#config = config;
+    } else {
+      this.#config = this.#defaultConfig
     }
   }
 
   async #request(method, uri, data = null, config = null) {
 
     this.#setConfig(config);
+
     const options = {
       method: method,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      }
+      headers: this.#config.header
     }
 
     if (null !== data) {
@@ -44,8 +49,8 @@ class HttpService {
 
     const url = this.#config.baseUrl + uri;
 
-      const response = await fetch(url, options);
-      return await this.#parseResponse(response)
+    const response = await fetch(url, options);
+    return await this.#parseResponse(response)
   }
 
   async get(uri, config) {
@@ -82,16 +87,28 @@ class HttpService {
           errors.set(error.property_path, error.message);
           error_string += error.message + "<br>"
         })
-      return errors
-      throw new Error(error_string)
+      throw new InvalidData(errors)
     }
 
     if (response.status === 401) {
-      throw new Error('Unauthorized Request')
+      const error = await response.json()
+      const data = { refresh_token: window.localStorage.getItem('refresh_token') }
+      if (error.message === 'JWT Token not found' || error.message === "JWT Refresh Token Not Found") {
+        throw new Unauthorized()
+      } else {
+        const refresh = await this.post('refresh',  data)
+        window.localStorage.setItem('token', refresh.security.token)
+        window.localStorage.setItem('refresh_token', refresh.security.refresh_token)
+        return 'refreshed'
+      }
     }
 
     if (response.status === 404) {
       throw new Error('Not Found')
+    }
+
+    if (response.status === 409) {
+      throw new Error('Conflict')
     }
 
     if (response.status === 500) {
@@ -102,6 +119,5 @@ class HttpService {
 
   }
 }
-
 const httpService = new HttpService()
 export default httpService;

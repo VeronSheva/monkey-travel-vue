@@ -25,9 +25,14 @@
           <div class="row">
             <div class="col-lg-2">
               <div class="dropdown">
-                <button class="btn btn-outline-dark dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false">
+                <button
+                    :class="'btn dropdown-toggle btn-outline-'
+                + (errors ?
+                (err('countries') ? 'danger' : 'dark')
+                : 'dark')"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                        class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
                     <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
@@ -37,18 +42,24 @@
                   <li v-for="country in countriesFilter">
                     <label class="form-check-label" for="flexCheckDefault">
                       <input class="form-check-input ms-2" type="checkbox"
-                             :value="country.en"
+                             :value="country"
                              :key="country.key"
                              @change="updateCountries"
                              id="flexCheckDefault">
-                      {{ country.ukr }}
+                      {{ country }}
                     </label>
                   </li>
                 </ul>
+                <error-message
+                    v-if="errors"
+                    :errors="errors"
+                    property="countries"
+                >
+                </error-message>
               </div>
             </div>
             <div class="col-lg-5">
-              <div class="input-group mb-3 mt-3 ms-lg-2 mt-lg-0">
+              <div class="mt-3 ms-lg-2 mt-lg-0" :class="'input-group ' + (errors ? err('min_sum') : 'mb-3') ">
                 <span class="input-group-text">Від $</span>
                 <input type="number"
                        class="form-control"
@@ -57,7 +68,13 @@
                        aria-label="Amount (to the nearest dollar)"
                        placeholder="1">
               </div>
-              <div class="input-group mb-3 ms-lg-2">
+              <error-message
+                  v-if="errors"
+                  :errors="errors"
+                  property="min_sum"
+              >
+              </error-message>
+              <div class="ms-lg-2" :class="'input-group ' + (errors ? err('max_sum') : 'mb-3') ">
                 <span class="input-group-text">До $</span>
                 <input type="number"
                        class="form-control"
@@ -66,9 +83,15 @@
                        aria-label="Amount (to the nearest dollar)"
                        placeholder="10000">
               </div>
+              <error-message
+                  v-if="errors"
+                  :errors="errors"
+                  property="max_sum"
+              >
+              </error-message>
             </div>
             <div class="col-lg-5">
-              <div class="input-group mb-3 mt-3 mt-lg-0">
+              <div class="mt-3 mt-lg-0" :class="'input-group ' + (errors ? err('date_start') : 'mb-3') ">
                 <span class="input-group-text" id="startDateSelected">З</span>
                 <label for="startDate"></label>
                 <input id="startDate"
@@ -77,7 +100,13 @@
                        :value="date_start"
                        @input="updateDateStart"/>
               </div>
-              <div class="input-group mb-3">
+              <error-message
+                  v-if="errors"
+                  :errors="errors"
+                  property="date_start"
+              >
+              </error-message>
+              <div :class="'input-group ' + (errors ? err('date_end') : 'mb-3') ">
                 <span class="input-group-text" id="endDateSelected">По</span>
                 <label for="endDate"></label>
                 <input id="endDate"
@@ -87,6 +116,12 @@
                        @input="updateDateEnd"
                 />
               </div>
+              <error-message
+                  v-if="errors"
+                  :errors="errors"
+                  property="date_end"
+              >
+              </error-message>
             </div>
           </div>
         </div>
@@ -96,7 +131,10 @@
 </template>
 
 <script>
+import ErrorMessage from "@/components/UI/ErrorMessage";
+
 export default {
+  components: {ErrorMessage},
   props: {
     countriesFilter: {
       type: Array,
@@ -116,6 +154,10 @@ export default {
     },
     date_end: {
       type: String
+    },
+    errors: {
+      type: Map,
+      default: new Map()
     }
   },
   data() {
@@ -160,11 +202,22 @@ export default {
         return true;
       }
       return false;
+    },
+    err(property) {
+      if (this.errors.get(property)) {
+        console.log(this.errors.get(property))
+        return 'err';
+      }
+      return false
     }
   }
 }
 </script>
 
 <style>
-
+.err {
+  background: #ffe6ee;
+  border: 2px solid rgba(255, 2, 2, 0.82);
+  border-radius: 7px;
+}
 </style>

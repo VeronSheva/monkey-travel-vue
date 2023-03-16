@@ -8,15 +8,17 @@
              @input="updateName"
              aria-describedby="basic-addon1">
     </div>
-    <div class="form-text err__msg mb-3"
+    <error-message
         v-if="errors"
-    >{{ errors.get('name') }}
-    </div>
+        :errors="errors"
+        property="name"
+    >
+    </error-message>
     <div class="row">
       <div class="col-12 col-md-12 col-sm-7 col-lg-7">
         <div class="row">
           <div class="col-5">
-            <div :class="'input-group ' + (errors ? err('country_code') : 'mb-3') ">
+            <div :class="'input-group ' + (errors ? err('country_code') : 'mb-3')">
               <select
                   @input="updateCountryCode"
                   class="form-select"
@@ -30,10 +32,12 @@
                 </option>
               </select>
             </div>
-            <div class="form-text err__msg mb-3"
+            <error-message
                 v-if="errors"
-            >{{ errors.get('country_code') }}
-            </div>
+                :errors="errors"
+                property="country_code"
+            >
+            </error-message>
           </div>
           <div class="col-7">
             <div :class="'input-group ' + (errors ? err('phone_number') : 'mb-3') ">
@@ -43,10 +47,12 @@
                      placeholder="Номер телефону"
                      aria-label="Recipient's username" aria-describedby="basic-addon2">
             </div>
-            <div class="form-text err__msg mb-3"
+            <error-message
                 v-if="errors"
-            >{{ errors.get('phone_number') }}
-            </div>
+                :errors="errors"
+                property="phone_number"
+            >
+            </error-message>
           </div>
         </div>
       </div>
@@ -58,10 +64,12 @@
                  placeholder="Кількість людей"
                  aria-label="Amount (to the nearest dollar)">
         </div>
-        <div class="form-text err__msg mb-3"
+        <error-message
             v-if="errors"
-        >{{ errors.get('people') }}
-        </div>
+            :errors="errors"
+            property="people"
+        >
+        </error-message>
       </div>
     </div>
     <div :class="'input-group ' + (errors ? err('email') : 'mb-3') ">
@@ -73,10 +81,12 @@
              id="basic-url"
              aria-describedby="basic-addon3">
     </div>
-    <div class="form-text err__msg mb-3"
+    <error-message
         v-if="errors"
-    >{{ errors.get('email') }}
-    </div>
+        :errors="errors"
+        property="email"
+    >
+    </error-message>
     <div class="row">
       <div class="col-6"></div>
       <div class="col-6" align="right">
@@ -93,7 +103,9 @@
 </template>
 
 <script>
+import ErrorMessage from "@/components/UI/ErrorMessage";
 export default {
+  components: {ErrorMessage},
   data() {
     return {
       sum: 0
@@ -124,7 +136,7 @@ export default {
     },
     errors: {
       type: Map,
-      default: false
+      default: new Map()
     }
   },
   methods: {
@@ -150,6 +162,9 @@ export default {
     updateSum(people) {
       this.sum = this.tripPrice * people
     },
+    updateErrors(errors) {
+      this.$emit('update:errors', errors)
+    },
     err(property) {
       if (this.errors.get(property)) {
         return 'err';
@@ -164,9 +179,5 @@ export default {
   background: #ffe6ee;
   border: 2px solid rgba(255, 2, 2, 0.82);
   border-radius: 7px;
-}
-.err__msg {
-  color: rgba(255, 2, 2, 0.82);
-  font-weight: bold;
 }
 </style>

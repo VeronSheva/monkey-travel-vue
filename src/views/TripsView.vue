@@ -7,6 +7,7 @@
           <div class="col-sm-6">
             <trip-filters
                 :countriesFilter="countriesFilter"
+                v-model:errors="errors"
                 v-model:countries="filters.countries"
                 v-model:min_sum="filters.min_sum"
                 v-model:max_sum="filters.max_sum"
@@ -25,22 +26,33 @@
             </trip-sort>
           </div>
           <div class="col-md-1 mt-3 mt-md-0">
-          <button type="submit"
-                  class="btn btn-primary btn-sm"
-                  @click="getTrips"
-          >Застосувати
-          </button>
+            <button type="submit"
+                    class="btn btn-primary btn-sm"
+                    @click.prevent="getTrips"
+            >Застосувати
+            </button>
           </div>
         </div>
-        <div class="row"
-        >
+        <div class="row">
           <pagination
               :pagination="pagination.pagination"
               v-model:currentPage="pagination.currentPage"
               :perPage="pagination.perPage"
-              @loadMoreTrips="getTrips"
-          >
+              @loadMoreTrips="getTrips">
           </pagination>
+          <div class="row">
+            <div class="col">
+              <button type="button"
+                      @click="addNewTrip"
+                      class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle mb-1" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Додати подорож
+              </button>
+            </div>
+          </div>
         </div>
         <div class="row"
              v-if="!loading">
@@ -48,13 +60,7 @@
           </trip-list>
         </div>
         <div v-else>
-          <div class="preloader">
-            <svg class="preloader__image" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <path fill="currentColor"
-                    d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z">
-              </path>
-            </svg>
-          </div>
+          <loading></loading>
         </div>
       </div>
       <div class="col-0 col-sm-1"></div>
@@ -67,10 +73,11 @@ import TripFilters from "@/components/TripFilters";
 import TripSort from "@/components/TripSort";
 import TripList from "@/components/TripList";
 import Pagination from "@/components/UI/Pagination";
+import Loading from "@/components/UI/Loading";
 import HttpService from "@/service/HTTP/HttpService"
 
 export default {
-  components: {TripList, TripSort, TripFilters, Pagination},
+  components: {TripList, TripSort, TripFilters, Pagination, Loading},
   props: {
     searchQuery: {
       type: String,
@@ -78,10 +85,13 @@ export default {
     },
     searchTrigger: {
       type: Boolean
-    }
+    },
   },
+  inject: ['adminMode'],
   data() {
     return {
+      admin: this.adminMode,
+      errors: new Map(),
       loading: false,
       trips: [],
       countriesFilter: [],
@@ -113,23 +123,32 @@ export default {
   },
   methods: {
     async getTrips() {
+      this.errors = new Map()
       this.loading = true
       const response = await HttpService.post('get-trips/' + this.pagination.perPage + '/' + this.pagination.currentPage, this.filters)
-        this.loading = false
+      this.loading = false
+      if (response.items) {
         this.trips = response.items
         this.pagination.pagination = response.pagination
         this.pagination.perPage = response.per_page
         this.pagination.currentPage = response.current_page
         this.pagination.total = response.total
+      } else {
+        this.errors = response
+      }
     },
     async getCountriesFilter() {
       this.countriesFilter = await HttpService.get('get-countries')
+    },
+    addNewTrip() {
+      this.$router.push('/admin')
+      window.localStorage.setItem('showForm', 'true')
     }
   },
   watch: {
     searchTrigger(newSearchTrigger) {
       if (newSearchTrigger) {
-        if (this.searchQuery.length > 0){
+        if (this.searchQuery.length > 0) {
           this.filters.search_query = this.searchQuery
           this.getTrips()
           this.filters.search_query = null
@@ -147,40 +166,4 @@ export default {
 }
 </script>
 
-<style>
-.preloader {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  /* фоновый цвет */
-}
 
-.preloader__image {
-  position: relative;
-  top: 50%;
-  left: 50%;
-  width: 70px;
-  height: 70px;
-  margin-top: -35px;
-  margin-left: -35px;
-  text-align: center;
-  animation: preloader-rotate 2s infinite linear;
-}
-
-@keyframes preloader-rotate {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.loaded_hiding .preloader {
-  transition: 0.3s opacity;
-  opacity: 0;
-}
-
-.loaded .preloader {
-  display: none;
-}
-</style>

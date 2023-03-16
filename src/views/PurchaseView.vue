@@ -26,16 +26,16 @@
           </div>
           <div class="col-md-7">
             <purchase-form class="mt-3"
-                :phoneCodes="phoneCodes"
-                :errors="errors"
-                v-model:name="purchaseData.name"
-                v-model:email="purchaseData.email"
-                v-model:people="purchaseData.people"
-                v-model:phone_number="purchaseData.phone_number"
-                v-model:country_code="purchaseData.country_code"
-                v-model:sum="purchaseData.sum"
-                v-model:tripPrice="trip.price"
-                @savePurchase="savePurchase"
+                           :phoneCodes="phoneCodes"
+                           v-model:errors="errors"
+                           v-model:name="purchaseData.name"
+                           v-model:email="purchaseData.email"
+                           v-model:people="purchaseData.people"
+                           v-model:phone_number="purchaseData.phone_number"
+                           v-model:country_code="purchaseData.country_code"
+                           v-model:sum="purchaseData.sum"
+                           v-model:tripPrice="trip.price"
+                           @savePurchase="savePurchase"
             >
             </purchase-form>
           </div>
@@ -50,6 +50,7 @@
 import PurchaseForm from "@/components/PurchaseForm"
 import TripById from "@/components/TripById";
 import HttpService from "@/service/HTTP/HttpService";
+import InvalidData from "@/Exception/InvalidData";
 
 export default {
   components: {
@@ -57,20 +58,10 @@ export default {
   },
   data() {
     return {
-      errors: false,
+      errors: new Map(),
       chosenTripId: null,
       trip: {},
-      phoneCodes: [
-        {code: '+380', abr: 'UA'},
-        {code: '+48', abr: 'PL'},
-        {code: '+1', abr: 'US'},
-        {code: '+9', abr: 'TR'},
-        {code: '+373', abr: 'MD'},
-        {code: '+351', abr: 'PT'},
-        {code: '+39', abr: 'IT'},
-        {code: '+44', abr: 'UK'},
-        {code: '+33', abr: 'FR'},
-      ],
+      phoneCodes: [],
       purchaseData: {
         name: '',
         country_code: '',
@@ -81,11 +72,14 @@ export default {
       },
     }
   },
+  mounted() {
+    this.getTripById()
+    this.getPhoneCodes()
+  },
   methods: {
     async getTripById() {
       this.chosenTripId = window.localStorage.getItem('chosenTrip')
       this.purchaseData.trip = this.chosenTripId
-      window.localStorage.setItem('chosenTripId', null)
       const response = await HttpService.get('get-trip/' + this.chosenTripId)
       this.trip = response.items[0]
     },
@@ -93,12 +87,11 @@ export default {
       this.phoneCodes = await HttpService.get('get-country-codes')
     },
     async savePurchase() {
-      this.errors = await HttpService.post('save-purchase', this.purchaseData)
+      this.errors = new Map()
+      const response = await HttpService.post('save-purchase', this.purchaseData)
+      console.log(response)
+      this.$toast.success("Заявку прийнято. Ми зв'яжемося з Вами найближчим часом")
     }
-  },
-  mounted() {
-    this.getTripById()
-    this.getPhoneCodes()
   }
 }
 </script>

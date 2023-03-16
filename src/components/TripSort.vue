@@ -58,6 +58,10 @@
 <script>
 export default {
   props: {
+    errors: {
+      type: Map,
+      default: false
+    },
     options: {
       type: Array,
       required: true

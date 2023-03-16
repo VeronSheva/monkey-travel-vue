@@ -23,6 +23,9 @@
             <li class="nav-item">
               <router-link to="/trips" class="nav-link"><span class="sr-only">Подорожі</span></router-link>
             </li>
+            <li class="nav-item" v-if="admin">
+              <router-link to="/admin" class="nav-link"><span class="sr-only">Адмін</span></router-link>
+            </li>
           </ul>
           <form class="d-flex" role="search">
             <input
@@ -53,11 +56,17 @@
 
 <script>
 export default {
+  data() {
+    return {
+      admin: this.adminMode
+    }
+  },
   props: {
     searchQuery: {
       type: String,
     }
   },
+  inject: ['adminMode']
 }
 </script>
 
